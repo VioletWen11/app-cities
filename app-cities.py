@@ -3,22 +3,18 @@ import pandas as pd
 import matplotlib.pyplot as plt
 plt.style.use('seaborn')
 
-st.title('world cities by Violet')
+
+st.title('World Cites')
 df = pd.read_csv('worldcities.csv')
-st.map(df)
 
-st.write(df)
+# note that you have to use 0.0 and 40.0 given that the data type of population is float
+population_filter = st.slider('Minimal Population (Millions):', 0.0, 40.0, 3.6)  # min, max, default
 
-#total pop
-fig, ax = plt.subplots()
-pop_sum = df.groupby('country')['population'].sum()
-pop_sum.plot.bar(ax = ax)
-st.pyplot(fig)
-
-# add a slider
-pop_filter = st.sidebar.slider('select minimal population', 0.0, 40.0, 4.0)
-#show the slider
-st.map(df)
+# create a multi select
+capital_filter = st.sidebar.multiselect(
+     'Capital Selector',
+     df.capital.unique(),  # options
+     df.capital.unique())  # defaults
 
 # create a input form
 form = st.sidebar.form("country_form")
@@ -26,21 +22,28 @@ country_filter = form.text_input('Country Name (enter ALL to reset)', 'ALL')
 form.form_submit_button("Apply")
 
 
-# add a capital multi select
-capital_filter = st.sidebar.multiselect('capital select',  df.capital.unique(), ['primary'])
-
 # filter by population
-df = df[df.population >= pop_filter]
+df = df[df.population >= population_filter]
 
-# fiter by capital
-df = df[df.population.isin(capital_filter)]
+# filter by capital
+df = df[df.capital.isin(capital_filter)]
 
-# filter by country
 if country_filter!='ALL':
     df = df[df.country == country_filter]
 
-# show
+# show on map
 st.map(df)
+
+# show dataframe
+st.subheader('City Details:')
+st.write(df[['city', 'country', 'population']])
+
+# show the plot
+st.subheader('Total Population By Country')
+fig, ax = plt.subplots(figsize=(20, 5))
+pop_sum = df.groupby('country')['population'].sum()
+pop_sum.plot.bar(ax=ax)
+st.pyplot(fig)
  
 
 
